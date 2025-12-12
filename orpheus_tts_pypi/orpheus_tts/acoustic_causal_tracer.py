@@ -22,8 +22,7 @@ class AcousticCausalTracer:
         self.embed_tokens = getattr(self.core, "embed_tokens", None)
         if self.embed_tokens is None:
             get_embeddings = getattr(model, "get_input_embeddings", None)
-            if callable(get_embeddings):
-                self.embed_tokens = get_embeddings()
+            self.embed_tokens = get_embeddings() if callable(get_embeddings) else None
         if self.embed_tokens is None:
             raise ValueError(
                 "Model must expose token embeddings via model.embed_tokens or get_input_embeddings()."
@@ -148,14 +147,17 @@ class AcousticCausalTracer:
 
         scores = []
 
-        for layer_idx in range(self.num_layers):
-            def patch_hook(module, _input, output, layer_idx=layer_idx):
+        def make_patch_hook(idx):
+            def patch_hook(module, _input, output):
                 hidden = self._extract_hidden(output)
                 patched_hidden = hidden.clone()
-                patched_hidden[:, noun_idx, :] = clean_activations[layer_idx]
+                patched_hidden[:, noun_idx, :] = clean_activations[idx]
                 return self._replace_hidden(output, patched_hidden)
 
-            handle = self.layers[layer_idx].register_forward_hook(patch_hook)
+            return patch_hook
+
+        for layer_idx in range(self.num_layers):
+            handle = self.layers[layer_idx].register_forward_hook(make_patch_hook(layer_idx))
 
             try:
                 with torch.no_grad():
