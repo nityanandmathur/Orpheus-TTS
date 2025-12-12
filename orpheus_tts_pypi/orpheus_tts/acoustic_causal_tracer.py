@@ -19,9 +19,10 @@ class AcousticCausalTracer:
         if self.layers is None:
             raise ValueError("Model must expose decoder layers via model.layers")
 
-        self.embed_tokens = getattr(self.core, "embed_tokens", None)
-        if self.embed_tokens is None and hasattr(model, "get_input_embeddings"):
-            self.embed_tokens = model.get_input_embeddings()
+        get_embeddings = getattr(model, "get_input_embeddings", None)
+        self.embed_tokens = getattr(self.core, "embed_tokens", None) or (
+            get_embeddings() if callable(get_embeddings) else None
+        )
         if self.embed_tokens is None:
             raise ValueError(
                 "Model must expose token embeddings via model.embed_tokens or get_input_embeddings()."
@@ -147,7 +148,6 @@ class AcousticCausalTracer:
         scores = []
 
         for layer_idx in range(self.num_layers):
-
             def patch_hook(module, _input, output, layer_idx=layer_idx):
                 hidden = self._extract_hidden(output)
                 patched_hidden = hidden.clone()
@@ -180,8 +180,7 @@ class AcousticCausalTracer:
 
 
 def plot_layer_importance(scores, save_path=None, show=False):
-    # Lazy import keeps matplotlib optional for non-plotting consumers; install it
-    # when using this helper.
+    # Lazy import keeps matplotlib optional for non-plotting consumers; install it when using this helper.
     import matplotlib.pyplot as plt
 
     layers = list(range(len(scores)))
