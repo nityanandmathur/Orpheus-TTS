@@ -6,3 +6,4 @@ __version__ = "0.1.0"
 # from .main import generate_tokens_sync
 from .decoder import tokens_decoder_sync
 from .engine_class import OrpheusModel
+from .acoustic_causal_tracer import AcousticCausalTracer, plot_layer_importance
