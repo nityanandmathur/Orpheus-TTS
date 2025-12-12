@@ -14,10 +14,18 @@ class AcousticCausalTracer:
         self.tokenizer = tokenizer
         self.device = device or next(model.parameters()).device
 
-        core = getattr(model, "model", model)
-        self.layers = getattr(core, "layers", None)
+        self.core = getattr(model, "model", model)
+        self.layers = getattr(self.core, "layers", None)
         if self.layers is None:
             raise ValueError("Model must expose decoder layers via model.layers")
+
+        self.embed_tokens = getattr(self.core, "embed_tokens", None)
+        if self.embed_tokens is None and hasattr(model, "get_input_embeddings"):
+            self.embed_tokens = model.get_input_embeddings()
+        if self.embed_tokens is None:
+            raise ValueError(
+                "Model must expose token embeddings via model.embed_tokens or get_input_embeddings()."
+            )
 
         self.num_layers = len(self.layers)
 
@@ -123,7 +131,7 @@ class AcousticCausalTracer:
         input_ids = inputs["input_ids"]
         attention_mask = inputs.get("attention_mask")
 
-        clean_embeddings = self.model.model.embed_tokens(input_ids)
+        clean_embeddings = self.embed_tokens(input_ids)
         noise = torch.randn_like(clean_embeddings[:, noun_idx, :]) * noise_level
         corrupted_embeddings = clean_embeddings.clone()
         corrupted_embeddings[:, noun_idx, :] += noise
@@ -172,6 +180,7 @@ class AcousticCausalTracer:
 
 
 def plot_layer_importance(scores, save_path=None, show=False):
+    # Lazy import keeps matplotlib optional unless plotting is requested.
     import matplotlib.pyplot as plt
 
     layers = list(range(len(scores)))

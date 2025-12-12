@@ -8,7 +8,10 @@ from orpheus_tts import AcousticCausalTracer, plot_layer_importance
 def parse_codec_ids(ids_str, device):
     if not ids_str:
         return None
-    values = [int(part.strip()) for part in ids_str.split(",") if part.strip()]
+    try:
+        values = [int(part.strip()) for part in ids_str.split(",") if part.strip()]
+    except ValueError as exc:
+        raise ValueError("target-codec-ids must be a comma-separated list of integers") from exc
     if len(values) == 0:
         return None
     return torch.tensor(values, device=device).unsqueeze(0)
@@ -39,7 +42,10 @@ def main():
 
     tracer = AcousticCausalTracer(model, tokenizer, device=device)
 
-    target_codec_ids = parse_codec_ids(args.target_codec_ids, device)
+    try:
+        target_codec_ids = parse_codec_ids(args.target_codec_ids, device)
+    except ValueError as exc:
+        parser.error(str(exc))
 
     if target_codec_ids is None and args.use_argmax_target:
         encoded = tokenizer(args.text, return_tensors="pt").to(device)
