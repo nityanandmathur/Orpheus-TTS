@@ -66,7 +66,11 @@ class AcousticCausalTracer:
             target_codec_ids = logits.argmax(dim=-1)
 
         if isinstance(target_codec_ids, torch.Tensor):
-            target_ids = target_codec_ids.to(logits.device)
+            target_ids = (
+                target_codec_ids
+                if target_codec_ids.device == logits.device
+                else target_codec_ids.to(logits.device)
+            )
         else:
             target_ids = torch.tensor(target_codec_ids, device=logits.device)
 
@@ -199,7 +203,5 @@ def plot_layer_importance(scores, save_path=None, show=False):
 
     if show:
         plt.show()
-    else:
-        plt.close(fig)
 
     return fig

@@ -9,7 +9,8 @@ def parse_codec_ids(ids_str, device):
     if not ids_str:
         return None
     try:
-        values = [int(part.strip()) for part in ids_str.split(",") if part.strip()]
+        parts = (part.strip() for part in ids_str.split(","))
+        values = [int(part) for part in parts if part]
     except ValueError as parse_error:
         raise ValueError(
             f"Invalid --target-codec-ids value '{ids_str}'. Expect comma-separated integers."
