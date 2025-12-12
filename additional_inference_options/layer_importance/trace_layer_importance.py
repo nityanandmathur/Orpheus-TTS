@@ -53,7 +53,7 @@ def main():
             clean_out = model(**encoded)
         target_codec_ids = clean_out.logits.argmax(dim=-1)
 
-    scores, token_idx = tracer.trace_from_text(
+    scores, target_token_idx = tracer.trace_from_text(
         args.text,
         args.word,
         target_codec_ids=target_codec_ids,
@@ -61,7 +61,9 @@ def main():
     )
 
     plot_layer_importance(scores, save_path=args.save_path, show=args.show)
-    print(f"Saved layer importance plot to {args.save_path} (target token index: {token_idx})")
+    print(
+        f"Saved layer importance plot to {args.save_path} (target token index: {target_token_idx})"
+    )
 
 
 if __name__ == "__main__":
