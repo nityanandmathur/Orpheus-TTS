@@ -180,7 +180,8 @@ class AcousticCausalTracer:
 
 
 def plot_layer_importance(scores, save_path=None, show=False):
-    # Lazy import keeps matplotlib optional unless plotting is requested.
+    # Lazy import keeps matplotlib optional for non-plotting consumers; install it
+    # when using this helper.
     import matplotlib.pyplot as plt
 
     layers = list(range(len(scores)))

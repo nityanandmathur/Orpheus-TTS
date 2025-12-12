@@ -11,7 +11,7 @@ def parse_codec_ids(ids_str, device):
     try:
         values = [int(part.strip()) for part in ids_str.split(",") if part.strip()]
     except ValueError as exc:
-        raise ValueError("target-codec-ids must be a comma-separated list of integers") from exc
+        raise ValueError("--target-codec-ids must be a comma-separated list of integers") from exc
     if len(values) == 0:
         return None
     return torch.tensor(values, device=device).unsqueeze(0)

@@ -6,7 +6,8 @@ of a target word.
 
 ### Setup
 
-Install the optional dependencies needed for tracing and plotting:
+Install the optional dependencies needed for tracing and plotting (matplotlib is
+only required when you want to save or display the plot):
 
 ```bash
 pip install torch transformers matplotlib
